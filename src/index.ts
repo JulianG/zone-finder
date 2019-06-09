@@ -1,1 +1,1 @@
-export { getZonesInGrid } from 'get-zones-in-grid';
+export * from './get-zones-in-grid';

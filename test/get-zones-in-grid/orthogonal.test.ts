@@ -1,6 +1,7 @@
-import { getZonesInGrid, Zone } from '../src/get-zones-in-grid';
+import { getZonesInGrid } from '../../src/get-zones-in-grid';
+import { sortZones } from './utils';
 
-describe('getZonesInGrid "happy path" tests', () => {
+describe('getZonesInGrid orthogonal tests', () => {
   it('single zone', () => {
     const grid = [['A', 'A', 'A', 'A']];
 
@@ -46,7 +47,7 @@ describe('getZonesInGrid "happy path" tests', () => {
     expect(zones).toMatchObject(expected);
   });
 
-  it('works if the grid is not uniform', () => {
+  it('still works if the grid is not uniform', () => {
     const grid = [
       ['C', '.', 'A', 'A', 'oh no'],
       ['C', '.', 'C', 'A', 'oh no'],
@@ -70,37 +71,5 @@ describe('getZonesInGrid "happy path" tests', () => {
 
     expect(zones).toMatchObject(expected);
   });
-
-  it('works with emoji 😎', () => {
-    const grid = [
-      ['🌑', '🤔', '🐷'], //
-      ['🦊', '🤔', '🤔'], //
-      ['🦊', '🤔', '🤔'], //
-    ];
-
-    const zones = sortZones(getZonesInGrid(grid));
-
-    expect(zones).toMatchObject(
-      sortZones([
-        { type: '🌑', cells: [[0, 0]] },
-        { type: '🦊', cells: [[1, 0], [2, 0]] },
-        { type: '🤔', cells: [[0, 1], [1, 1], [2, 1], [2, 2], [1, 2]] },
-        { type: '🐷', cells: [[0, 2]] },
-      ])
-    );
-  });
 });
-
 // test-utils
-
-function sortZones<T>(zones: ReadonlyArray<Zone<T>>): ReadonlyArray<Zone<T>> {
-  return [...zones].sort((a, b) => {
-    if (a.type === b.type) {
-      return a.cells.length - b.cells.length;
-    } else {
-      if (a.type < b.type) return -1;
-      if (a.type > b.type) return 1;
-      return 0;
-    }
-  });
-}

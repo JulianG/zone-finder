@@ -1,58 +1,75 @@
-export type Coord = [number, number];
-export type Grid<T> = ReadonlyArray<ReadonlyArray<T>>;
-export type Zone<T> = { type: T; cells: Array<Coord> };
+import { Coords, Grid, Zone } from 'core';
+import { getOthogonalNeighbours } from './neighbours';
 
-export function getZonesInGrid<T>(grid: Grid<T>): ReadonlyArray<Zone<T>> {
+export function getZonesInGrid<T>(
+  grid: Grid<T>,
+  getNeighbours: (
+    coords: Coords
+  ) => ReadonlyArray<Coords> = getOthogonalNeighbours
+): ReadonlyArray<Zone<T>> {
+  //
   const gridHeight = grid.length;
   const gridWidth = grid[0].length;
 
-  const getNeighbours = (y: number, x: number): ReadonlyArray<Coord> => [
-    [y - 1, x],
-    [y + 1, x],
-    [y, x - 1],
-    [y, x + 1],
-  ];
+  const getCellType = ([y, x]: Coords) => grid[y][x];
 
-  const isCellInGrid = ([y, x]: Coord) =>
-    y >= 0 && x >= 0 && y < gridHeight && x < gridWidth;
+  const isInGrid = ([y, x]: Coords) => {
+    return y >= 0 && x >= 0 && y < gridHeight && x < gridWidth;
+  };
 
   const zones: Zone<T>[] = [];
   const addZone = (type: T) => {
     const zone = { type, cells: [] };
-    if (!zones.includes(zone)) {
-      zones.push(zone);
-    }
+    zones.push(zone);
     return zone;
   };
 
-  const visited: Coord[] = [];
-  const wasVisited = ([y, x]: Coord) =>
-    visited.some(([vy, vx]) => vy === y && vx === x);
+  const visited: Coords[] = [];
+  const wasVisited = ([y, x]: Coords) => {
+    return visited.some(([vy, vx]) => vy === y && vx === x);
+  };
 
-  const visitCell = ([y, x]: Coord, zone: Zone<T> | null) => {
-    visited.push([y, x]);
-    const type = grid[y][x];
+  const visitCoords = (coords: Coords, zone: Zone<T> | null) => {
+    //
+    visited.push(coords);
+    const type = getCellType(coords);
 
     zone = zone || addZone(type);
-    zone.cells.push([y, x]);
+    zone.cells.push(coords);
 
-    const neighbours = getNeighbours(y, x).filter(isCellInGrid);
+    const isMatchingNeighbour = (coords: Coords) =>
+      getCellType(coords) === type;
 
-    neighbours.forEach(([ny, nx]: Coord) => {
-      const isMatchingNeighbour = grid[ny][nx] === type;
-      if (isMatchingNeighbour && !wasVisited([ny, nx])) {
-        visitCell([ny, nx], zone);
+    const matchingNeighbours = getNeighbours(coords)
+      .filter(isInGrid)
+      .filter(isMatchingNeighbour);
+
+    matchingNeighbours.forEach(nCoords => {
+      if (!wasVisited(nCoords)) {
+        visitCoords(nCoords, zone);
       }
     });
   };
 
-  grid.forEach((row, y) => {
-    row.forEach((_, x) => {
-      if (!wasVisited([y, x])) {
-        visitCell([y, x], null);
-      }
-    });
+  getAllCoordinates(grid).forEach(coords => {
+    if (!wasVisited(coords)) {
+      visitCoords(coords, null);
+    }
   });
 
   return zones;
+}
+
+function getAllCoordinates<T>(grid: Grid<T>): ReadonlyArray<Coords> {
+  return grid.reduce(
+    (acc, row, y) => {
+      return [
+        ...acc,
+        ...row.map((_, x) => {
+          return [y, x] as Coords;
+        }),
+      ];
+    },
+    [] as Coords[]
+  );
 }
