@@ -46,24 +46,25 @@ Each zone contains a `type` and a `cells` array of coordinates.
   { type: 'C', cells: [[1, 2], [2, 2], [2, 3], [3, 3], [4, 3], [5, 3]] },
   { type: 'B', cells: [[4, 1], [4, 2]] },
   { type: '.', cells: [[5, 1], [5, 2]] },
-  { type: 'oh no', cells: [[0, 4], [1, 4]] }
-]
+  { type: 'oh no', cells: [[0, 4], [1, 4]] },
+];
 ```
 
 ### Extras
 
+#### Diagonal Neighbours
+
 By default the function finds zones of cells of the same type which are **orthogonally adjacent**. But if you want to include diagonal neighbours as well, you can pass a second argument with a function that returns the neighbours.
 
 ```ts
-
-import { getZonesInGrid, getAllNeighbours } from "zone-finder";
+import { getZonesInGrid, getAllNeighbours } from 'zone-finder';
 
 const grid = [
-      ['C', '.'], //
-      ['C', '.'], //
-      ['.', 'C'], //
-      ['.', 'C'], //
-    ];
+  ['C', '.'], //
+  ['C', '.'], //
+  ['.', 'C'], //
+  ['.', 'C'], //
+];
 
 const zones = getZonesInGrid(grid, getAllNeighbours);
 ```
